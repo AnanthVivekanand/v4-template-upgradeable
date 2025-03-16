@@ -14,7 +14,7 @@ import {MockERC20} from "solmate/src/test/utils/mocks/MockERC20.sol";
 import {Constants} from "v4-core/src/../test/utils/Constants.sol";
 import {TickMath} from "v4-core/src/libraries/TickMath.sol";
 import {CurrencyLibrary, Currency} from "v4-core/src/types/Currency.sol";
-import {Counter} from "../src/Counter.sol";
+import {CounterUpgradeable} from "../src/CounterUpgradeable.sol";
 import {HookMiner} from "v4-periphery/src/utils/HookMiner.sol";
 import {IPositionManager} from "v4-periphery/src/interfaces/IPositionManager.sol";
 import {PositionManager} from "v4-periphery/src/PositionManager.sol";
@@ -24,6 +24,10 @@ import {DeployPermit2} from "../test/utils/forks/DeployPermit2.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {IPositionDescriptor} from "v4-periphery/src/interfaces/IPositionDescriptor.sol";
 import {IWETH9} from "v4-periphery/src/interfaces/external/IWETH9.sol";
+
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {UpgradesWithCreate2} from "../src/UpgradesWithCreate2.sol";
+import {Options} from "oz-foundry-upgrades/Options.sol";
 
 /// @notice Forge script for deploying v4 & hooks to **anvil**
 contract CounterScript is Script, DeployPermit2 {
@@ -47,16 +51,36 @@ contract CounterScript is Script, DeployPermit2 {
                 | Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG
         );
 
+        // compute where the implementation will be deployed
+        address implementationAddress = computeCreateAddress(address(this), vm.getNonce(address(this)));
+        
+        // encode the initialization data for the implementation contract
+        bytes memory implementationInitializeData = abi.encodeCall(CounterUpgradeable.initialize, manager);
+
         // Mine a salt that will produce a hook address with the correct permissions
         (address hookAddress, bytes32 salt) =
-            HookMiner.find(CREATE2_DEPLOYER, permissions, type(Counter).creationCode, abi.encode(address(manager)));
+            HookMiner.find(CREATE2_DEPLOYER, permissions, type(ERC1967Proxy).creationCode, 
+                            abi.encode(implementationAddress, implementationInitializeData));
 
-        // ----------------------------- //
-        // Deploy the hook using CREATE2 //
-        // ----------------------------- //
-        vm.broadcast();
-        Counter counter = new Counter{salt: salt}(manager);
-        require(address(counter) == hookAddress, "CounterScript: hook address mismatch");
+        // ------------------------------------- //
+        // Deploy the hook & proxy using CREATE2 //
+        // ------------------------------------- //
+
+        Options memory opts;
+        address proxyAddress = UpgradesWithCreate2.deployUUPSProxy(
+            "CounterUpgradeable.sol",
+            implementationInitializeData,
+            opts,
+            salt
+        );
+
+        // treat our proxy as a CounterUpgradeable
+        CounterUpgradeable counter = CounterUpgradeable(proxyAddress);
+
+        // check that our proxy has an address that encodes the correct permissions
+        Hooks.validateHookPermissions(counter, counter.getHookPermissions());
+        
+        require(proxyAddress == hookAddress, "CounterScript: hook address mismatch");
 
         // Additional helpers for interacting with the pool
         vm.startBroadcast();

@@ -1,3 +1,18 @@
+# v4-template-upgradeable
+### **A template for writing <u>upgradeable</u> Uniswap v4 Hooks 🦄**
+
+> The standard `v4-template` readme is below the separator.
+
+This fork of `v4-template` is an example of working with upgradeable hooks via the UUPS pattern. It incorporates OpenZeppelin's UUPS libraries, and additionally modifies a few key parts of:
+* [BaseHook.sol](https://github.com/Uniswap/v4-periphery/blob/main/src/utils/BaseHook.sol) (from `v4-periphery`)
+* [ImmutableState.sol](https://github.com/Uniswap/v4-periphery/blob/main/src/base/ImmutableState.sol) from (`v4-periphery`)
+* [Upgrades.sol](https://github.com/OpenZeppelin/openzeppelin-foundry-upgrades/blob/main/src/Upgrades.sol) (from `openzeppelin-foundry-upgrades`)
+
+
+These can be found in `src/`.
+
+<hr>
+
 # v4-template
 ### **A template for writing Uniswap v4 Hooks 🦄**
 
