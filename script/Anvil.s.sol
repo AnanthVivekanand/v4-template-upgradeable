@@ -42,9 +42,9 @@ contract CounterScript is Script, DeployPermit2 {
     function setUp() public {}
 
     function run() public {
-        vm.broadcast();
+        vm.startBroadcast();
         manager = deployPoolManager();
-
+        
         // hook contracts must have specific flags encoded in the address
         uint160 permissions = uint160(
             Hooks.BEFORE_SWAP_FLAG | Hooks.AFTER_SWAP_FLAG | Hooks.BEFORE_ADD_LIQUIDITY_FLAG
@@ -52,8 +52,8 @@ contract CounterScript is Script, DeployPermit2 {
         );
 
         // compute where the implementation will be deployed
-        address implementationAddress = computeCreateAddress(address(this), vm.getNonce(address(this)));
-        
+        address implementationAddress = computeCreateAddress(address(msg.sender), vm.getNonce(address(msg.sender)));
+
         // encode the initialization data for the implementation contract
         bytes memory implementationInitializeData = abi.encodeCall(CounterUpgradeable.initialize, manager);
 
@@ -83,15 +83,11 @@ contract CounterScript is Script, DeployPermit2 {
         require(proxyAddress == hookAddress, "CounterScript: hook address mismatch");
 
         // Additional helpers for interacting with the pool
-        vm.startBroadcast();
         posm = deployPosm(manager);
         (lpRouter, swapRouter,) = deployRouters(manager);
-        vm.stopBroadcast();
 
         // test the lifecycle (create pool, add liquidity, swap)
-        vm.startBroadcast();
         testLifecycle(address(counter));
-        vm.stopBroadcast();
     }
 
     // -----------------------------------------------------------
