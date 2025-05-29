@@ -28,7 +28,7 @@ contract CounterScript is Script, Constants {
         address implementationAddress = computeCreateAddress(address(this), vm.getNonce(address(this)));
         
         // encode the initialization data for the implementation contract
-        bytes memory implementationInitializeData = abi.encodeCall(CounterUpgradeable.initialize, POOLMANAGER);
+        bytes memory implementationInitializeData = abi.encodeCall(CounterUpgradeable.initialize, (POOLMANAGER, msg.sender));
         
         // Mine a salt that will produce a hook address with the correct permissions
         (address hookAddress, bytes32 salt) =

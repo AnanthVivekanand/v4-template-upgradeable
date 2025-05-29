@@ -19,10 +19,10 @@ import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/a
 abstract contract BaseHookUpgradeable is IHooks, ImmutableStateUpgradeable, UUPSUpgradeable, OwnableUpgradeable {
     error HookNotImplemented();
 
-    function initialize(IPoolManager _manager) public virtual override onlyInitializing {
+    function initialize(IPoolManager _manager, address _owner) public virtual onlyInitializing {
         ImmutableStateUpgradeable.initialize(_manager);
+        __Ownable_init(_owner);
         __UUPSUpgradeable_init();
-        __Ownable_init(msg.sender);
         validateHookAddress(this);
     }
 
@@ -31,7 +31,7 @@ abstract contract BaseHookUpgradeable is IHooks, ImmutableStateUpgradeable, UUPS
     function _authorizeUpgrade(
         address newImplementation
     ) internal virtual override onlyOwner {
-
+    
     }
 
     /// @notice Returns a struct of permissions to signal which hook functions are to be implemented
@@ -42,6 +42,7 @@ abstract contract BaseHookUpgradeable is IHooks, ImmutableStateUpgradeable, UUPS
     /// @dev this function is virtual so that we can override it during testing,
     /// which allows us to deploy an implementation to any address
     /// and then etch the bytecode into the correct address
+    /// @notice This is REMOVED in the upgradeable version as not need -- perform validation before deploying
     function validateHookAddress(BaseHookUpgradeable _this) internal pure virtual {
         // Hooks.validateHookPermissions(_this, getHookPermissions());
     }

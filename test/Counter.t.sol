@@ -48,7 +48,7 @@ contract CounterTest is Test, Fixtures {
         );
         deployCodeTo("CounterUpgradeable.sol:CounterUpgradeable", flags);
         hook = CounterUpgradeable(flags);
-        hook.initialize(manager);
+        hook.initialize(manager, address(this));
 
         // Create the pool
         key = PoolKey(currency0, currency1, 3000, 60, IHooks(hook));

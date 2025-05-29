@@ -55,7 +55,7 @@ contract CounterScript is Script, DeployPermit2 {
         address implementationAddress = computeCreateAddress(address(msg.sender), vm.getNonce(address(msg.sender)));
 
         // encode the initialization data for the implementation contract
-        bytes memory implementationInitializeData = abi.encodeCall(CounterUpgradeable.initialize, manager);
+        bytes memory implementationInitializeData = abi.encodeCall(CounterUpgradeable.initialize, (manager, msg.sender));
 
         // Mine a salt that will produce a hook address with the correct permissions
         (address hookAddress, bytes32 salt) =

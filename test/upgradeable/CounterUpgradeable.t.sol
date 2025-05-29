@@ -59,7 +59,7 @@ contract CounterUpgradeableTest is Test, Fixtures {
 
         // From here on, we'll refer to the proxy as the "hook"
         // Deploy the hook to our address
-        bytes memory implementationInitializeCall = abi.encodeCall(CounterUpgradeable.initialize, manager); // Add all the necessary arguments for the implementation contract
+        bytes memory implementationInitializeCall = abi.encodeCall(CounterUpgradeable.initialize, (manager, address(this))); // Add all the necessary arguments for the implementation contract
         bytes memory proxyConstructorArgs = abi.encode(implementation, implementationInitializeCall);
         deployCodeTo("ERC1967Proxy.sol:ERC1967Proxy", proxyConstructorArgs, flags);
         hook = CounterUpgradeable(flags);

@@ -43,8 +43,8 @@ contract CounterUpgradeableV2 is BaseHookUpgradeable {
     mapping(PoolId => uint256 count) public beforeAddLiquidityCount;
     mapping(PoolId => uint256 count) public beforeRemoveLiquidityCount;
 
-    function initialize(IPoolManager _manager) public override initializer {
-        BaseHookUpgradeable.initialize(_manager);
+    function initialize(IPoolManager _manager, address _owner) public override initializer {
+        BaseHookUpgradeable.initialize(_manager, _owner);
     }
 
     function getHookPermissions() public pure override returns (Hooks.Permissions memory) {
